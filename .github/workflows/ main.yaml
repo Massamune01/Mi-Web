@@ -1,16 +1,32 @@
-name: CI Notification
+name: Deploy to Surge.sh
 
 on:
   push:
+    branches:
+      - main  # Se ejecuta cada vez que haces push a main
 
 jobs:
-  notify:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send notification to ntfy
-        run: |
-          curl -X POST https://ntfy.sh/devops-itla \
-          -H "Title: Nuevo push en el repositorio" \
-          -H "Priority: default" \
-          -d "Se ha realizado un push en el repositorio ${{ github.repository }} por ${{ github.actor }} en la rama ${{ github.ref_name }}"
+      # 1. Descarga el código del repositorio
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Instala Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # 3. Instala Surge
+      - name: Install Surge
+        run: npm install --global surge
+
+      # 4. Despliega a Surge.sh usando los secrets
+      - name: Deploy to Surge
+        run: surge ./  --domain 1erParcialSurge_sh.surge.sh
+        env:
+          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
